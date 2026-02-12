@@ -16,6 +16,7 @@
         <module>loader</module>
         <module>engine</module>
         <module>archive</module>
+        <module>spring_boot_app</module>
     </modules>
 
     <properties>
@@ -26,32 +27,20 @@
         <jaxb.api.version>2.3.1</jaxb.api.version>
         <jaxb.runtime.version>2.3.2</jaxb.runtime.version>
         <activation.version>1.2.0</activation.version>
+        <spring-boot.version>3.1.5</spring-boot.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-    <!-- JAXB dependencies for Java 9+ (JDK 21) since JAXB was removed from the JDK -->
-    <!-- Declared at parent so all modules can use JAXB without repeating versions -->
-    <dependencies>
-        <!-- API with javax.* packages to match current imports in the codebase -->
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>${jaxb.api.version}</version>
-        </dependency>
-
-        <!-- Runtime implementation (includes core + txw2) -->
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>${jaxb.runtime.version}</version>
-        </dependency>
-
-        <!-- Activation Framework for Java 9+ when using javax.* JAXB -->
-        <dependency>
-            <groupId>com.sun.activation</groupId>
-            <artifactId>javax.activation</artifactId>
-            <version>${activation.version}</version>
-        </dependency>
-    </dependencies>
 
 </project>

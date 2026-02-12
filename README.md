@@ -56,7 +56,7 @@ Upon running the application, you will be presented with a menu:
 7. Select option `0` → Exit
 
 ## Project Structure
-- **console**: Console-based user interface and Main entry point.
+- **console**: Console-based user interface and Main_Console entry point.
 - **engine**: Core Enigma processing (Rotors, Reflector, Plugboard, Engine).
 - **machine**: Machine entity and state management.
 - **loader**: XML configuration loading via JAXB.
@@ -66,13 +66,13 @@ Upon running the application, you will be presented with a menu:
 The system is built on a modular architecture separating the user interface, machine state, and core processing logic.
 
 ### High-Level Flow
-- **Initialization**: The `Main` class initializes `MachineManager`.
+- **Initialization**: The `Main_Console` class initializes `MachineManager`.
 - **Configuration**: User loads an XML via `EnigmaJaxbLoader`. `StorageManager` validates and stores the configuration parts like Rotors and Reflectors.
 - **Assembly**: `MachineManager` assembles a `Machine` instance. The `Machine` holds the state and an `Engine`.
 - **Processing**: The `Engine` directs the signal through the `Plugboard`, `Rotors`, and `Reflector` to encrypt/decrypt messages.
 
 ### Key Classes
-- **`Main`**: Entry point for the application.
+- **`Main_Console`**: Entry point for the application.
 - **`MachineManager`**: The controller that orchestrates user choices, manages the `Machine` instance, and handles the flow of operations.
 - **`Machine`**: Represents the Enigma Machine entity. It holds the current state (rotor positions), usage history, and the `Engine`.
 - **`Engine`**: The processing core. It receives input characters and routes them through the hardware components.

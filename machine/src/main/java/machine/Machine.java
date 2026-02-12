@@ -2,7 +2,7 @@ package machine;
 
 
 import hardware.engine.Engine;
-import history.ConfigurationStats;
+import patmal.course.enigma.history.ConfigurationStats;
 
 import java.io.Serializable;
 import java.util.ArrayList;
