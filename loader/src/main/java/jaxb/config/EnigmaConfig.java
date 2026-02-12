@@ -1,6 +1,8 @@
 package jaxb.config;
 
-import javax.xml.bind.annotation.*;
+import jakarta.xml.bind.annotation.*;
+
+
 import java.util.List;
 
 @XmlRootElement(name = "BTE-Enigma")

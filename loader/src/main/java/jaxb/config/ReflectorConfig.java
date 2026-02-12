@@ -1,9 +1,13 @@
 package jaxb.config;
 
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
 import jaxb.WiredPart;
 
-import javax.xml.bind.annotation.*;
+
 import java.util.List;
 import java.util.function.Function;
 

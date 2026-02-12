@@ -5,6 +5,8 @@ package storage;
 import hardware.Utils;
 import hardware.parts.Reflector;
 import hardware.parts.Rotor;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
 import jaxb.EnigmaConfigMapper;
 import jaxb.EnigmaJaxbLoader;
 import jaxb.config.EnigmaConfig;
@@ -13,6 +15,7 @@ import jaxb.config.RotorConfig;
 import storage.reflector.ReflectorStorage;
 import storage.rotor.RotorStorage;
 
+import java.io.InputStream;
 import java.util.List;
 
 public class StorageManager implements software.StorageProvider {
@@ -187,4 +190,19 @@ public class StorageManager implements software.StorageProvider {
         return RS.availableRotorsStr();
     }
 
+
+    public void loadSupplyFromStream(InputStream inputStream) throws Exception {
+        JAXBContext context = JAXBContext.newInstance(EnigmaConfig.class);
+        Unmarshaller unmarshaller = context.createUnmarshaller();
+
+        this.EC = (EnigmaConfig) unmarshaller.unmarshal(inputStream);
+        this.ECM = new EnigmaConfigMapper(EC);
+        this.PCV = new PartsConfigValidator();
+        this.ABC = EC.getAlphabet();
+        this.rotorsCount = EC.getRotorsCount();
+
+        if (validateSupply()) {
+            buildStorages();
+        }
+    }
 }
