@@ -1,0 +1,31 @@
+package patmal.course.enigma.server.controller;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import patmal.course.enigma.server.dto.EncryptionOutputDTO;
+import patmal.course.enigma.server.runtime.EnigmaRunTime;
+
+@RestController
+@RequestMapping("/process")
+public class ProcessController {
+
+    private EnigmaRunTime enigmaRunTime;
+
+    @Autowired
+    public ProcessController(EnigmaRunTime enigmaRunTime) {
+        this.enigmaRunTime = enigmaRunTime;
+    }
+
+    @PostMapping
+    public ResponseEntity<EncryptionOutputDTO> encryptString(@RequestParam(name = "input") String input) {
+       input = input.trim().toUpperCase();
+       ResponseEntity<EncryptionOutputDTO> response = enigmaRunTime.order5EncryptString(input);
+       return response;
+    }
+
+}
