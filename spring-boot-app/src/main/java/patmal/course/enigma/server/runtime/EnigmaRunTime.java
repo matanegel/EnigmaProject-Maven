@@ -169,6 +169,17 @@ public class EnigmaRunTime {
         return initCode;
     }
 
+    public List<ConfigurationStats> order7ShowHistory() {
+        if (machine.getFullHistory().isEmpty()) {
+            throw new UnsupportedOperationException ("\nNo history found. The machine hasn't been configured yet.");
+        }
+
+        List<ConfigurationStats> history = new ArrayList<>();
+
+        history = machine.getFullHistory();
+        return history;
+    }
+
 
 
 
