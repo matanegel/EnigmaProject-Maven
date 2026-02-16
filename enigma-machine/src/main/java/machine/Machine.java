@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Machine implements Serializable {
+    private String name;
     private String alphabet;
     private int rotorsCount;
     private MachineState state;
@@ -54,6 +55,14 @@ public class Machine implements Serializable {
 
     public void setState(MachineState state) {
         this.state = state;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Engine getEngine() {

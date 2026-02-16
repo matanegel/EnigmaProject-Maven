@@ -9,6 +9,9 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class EnigmaConfig {
 
+    @XmlAttribute(name = "name")
+    private String name;
+
     @XmlAttribute(name = "rotors-count")
     private int rotorsCount;
 
@@ -73,6 +76,10 @@ public class EnigmaConfig {
             }
         }
         return true;
+    }
+
+    public String getName() {
+        return name;
     }
 }
 

@@ -1,25 +1,16 @@
 package patmal.course.enigma.server.controller;
 
 import hardware.engine.Engine;
-import hardware.engine.rotorsManagers;
-import hardware.parts.Plugboard;
-import hardware.parts.Reflector;
 import hardware.parts.Rotor;
-import history.ConfigurationStats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import patmal.course.enigma.server.dto.EnigmaManualConfigDTO;
 import patmal.course.enigma.server.dto.EnigmaStatusDTO;
 import patmal.course.enigma.server.runtime.EnigmaRunTime;
-import software.AutoConfig;
-import software.MachineConfig;
-import software.ManualConfig;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/config")
@@ -40,16 +31,16 @@ public class ConfigController {
     }
 
     @PutMapping("/manual")
-    public ResponseEntity<String> getManualConfig(@RequestBody EnigmaManualConfigDTO manualConfig) {
-        String initCode = enigmaRunTime.order3GetManualConfig(manualConfig);
-        return ResponseEntity.ok(initCode);
+    public ResponseEntity<String> putManualConfig(@RequestBody EnigmaManualConfigDTO manualConfig) {
+        String responseStr = enigmaRunTime.order3GetManualConfig(manualConfig);
+        return ResponseEntity.ok(responseStr);
     }
 
     @PutMapping("/automatic")
-    public ResponseEntity<String> getAutomaticConfig() {
+    public ResponseEntity<String> putAutomaticConfig() {
 
-        String initCode = enigmaRunTime.order4GetAutomaticConfig();
-        return ResponseEntity.ok(initCode);
+        String responseStr = enigmaRunTime.order4GetAutomaticConfig();
+        return ResponseEntity.ok(responseStr);
     }
 
     @PutMapping("/reset")

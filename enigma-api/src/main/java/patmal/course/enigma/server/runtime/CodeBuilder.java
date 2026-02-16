@@ -2,6 +2,7 @@ package patmal.course.enigma.server.runtime;
 
 import hardware.Utils;
 import hardware.parts.Rotor;
+import lombok.Setter;
 import machine.Machine;
 import patmal.course.enigma.server.dto.EnigmaStatusDTO;
 import storage.StorageManager;
@@ -9,6 +10,7 @@ import storage.StorageManager;
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
 public class CodeBuilder {
     private final Machine enigmaMachine;
     private StorageManager SM;
