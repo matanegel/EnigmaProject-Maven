@@ -11,12 +11,12 @@
 
 
     <modules>
-        <module>console</module>
-        <module>machine</module>
-        <module>loader</module>
-        <module>engine</module>
-        <module>archive</module>
-        <module>spring-boot-app</module>
+        <module>enigma-console</module>
+        <module>enigma-machine</module>
+        <module>enigma-loader</module>
+        <module>enigma-engine</module>
+        <module>enigma-archive</module>
+        <module>enigma-api</module>
     </modules>
 
     <properties>
