@@ -30,7 +30,7 @@
 
         <dependency>
             <groupId>patmal.course.enigma</groupId>
-            <artifactId>engine</artifactId>
+            <artifactId>enigma-engine</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
