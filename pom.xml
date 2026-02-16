@@ -17,6 +17,7 @@
         <module>enigma-engine</module>
         <module>enigma-archive</module>
         <module>enigma-api</module>
+        <module>enigma-dal</module>
     </modules>
 
     <properties>
