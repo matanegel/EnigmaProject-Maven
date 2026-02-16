@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigurationStats implements Serializable {
+
     private String machineConfiguration;
     private List<ProcessedString> processedStrings;
 

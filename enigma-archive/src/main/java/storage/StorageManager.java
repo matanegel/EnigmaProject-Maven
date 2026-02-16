@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.util.List;
 
 public class StorageManager implements software.StorageProvider {
+    private String machineName;
     private final EnigmaJaxbLoader supplyLoader;
     private EnigmaConfig EC;
     private EnigmaConfigMapper ECM;
@@ -200,9 +201,15 @@ public class StorageManager implements software.StorageProvider {
         this.PCV = new PartsConfigValidator();
         this.ABC = EC.getAlphabet();
         this.rotorsCount = EC.getRotorsCount();
+        this.machineName = EC.getName();
 
         if (validateSupply()) {
             buildStorages();
         }
     }
+
+    public String getMachineName() {
+        return machineName;
+    }
+
 }
