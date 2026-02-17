@@ -6,10 +6,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class rotorsManagers implements Serializable {
+public class RotorsManagers implements Serializable {
     private final Rotor[] rotors;
 
-    public rotorsManagers(Rotor[] rotors) {
+    public RotorsManagers(Rotor[] rotors) {
         this.rotors = rotors;
     }
 

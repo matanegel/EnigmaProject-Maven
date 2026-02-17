@@ -31,7 +31,6 @@ public class StorageManager implements software.StorageProvider {
     private int rotorsCount;
     private List<Character>  originalPosition;
     private boolean ValidSupply = false;
-    private StorageManager myCopy;
 
     public StorageManager(EnigmaJaxbLoader loader) {
        this.supplyLoader = loader;
@@ -213,4 +212,15 @@ public class StorageManager implements software.StorageProvider {
         return machineName;
     }
 
+    public EnigmaJaxbLoader getSupplyLoader() {
+        return supplyLoader;
+    }
+
+    public RotorStorage getRS() {
+        return RS;
+    }
+
+    public ReflectorStorage getRFS() {
+        return RFS;
+    }
 }

@@ -230,10 +230,12 @@ public class MachineManager {
         List<Character> originalPosition = SM.getOriginalPosition();
         int index = rotors.length - 1;
         for (int i = index; i >= 0; i--) {
-            sb.append(original ? originalPosition.get(i) : SM.getABC().charAt(rotors[i].getPosition()));
+            sb.append(original ? originalPosition.get(i) : rotors[i]
+                    .getWiringRotor().getRightColumn()
+                    .charAt(rotors[i].getPosition()));
             sb.append('(');
             int res = rotors[i].getNoche()
-                    - (original ? Utils.charToIndex(originalPosition.get(i), SM.getABC()) : rotors[i].getPosition());
+                    - (original ? Utils.charToIndex(originalPosition.get(i), SM.getABC()) : rotors[i].getPosition()) + 1;
             sb.append(Utils.normalize(res, rotors[i].sizeABC));
             sb.append(')');
             sb.append(',');

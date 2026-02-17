@@ -2,11 +2,12 @@ package storage.reflector;
 
 
 import hardware.parts.Reflector;
+import lombok.Getter;
 import storage.PartsStorage;
 
 import java.util.Map;
 import java.util.stream.Collectors;
-
+@Getter
 public class ReflectorStorage implements PartsStorage {
     private Map<String, Reflector> reflectorMap;
 

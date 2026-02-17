@@ -1,29 +1,36 @@
 package patmal.course.enigma.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import storage.reflector.reflector_id_enum;
+
 
 import java.util.UUID;
 
 @Entity
+@Data
 @Table(name = "machines_reflectors")
 public class MachineReflectorEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "machine_id")
-    private UUID machineId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "machine_id", nullable = false)
+    private MachineEntity machineId;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "reflector_id")
-    private String reflectorId; // Maps to your reflector_id_enum
+    private reflector_id_enum reflectorId;
 
-    @Column(name = "input_text")
+    @Column(name = "input")
     private String input;
 
-    @Column(name = "output_text")
+    @Column(name = "output")
     private String output;
 
     public MachineReflectorEntity() {}

@@ -48,4 +48,8 @@ public class WiringReflactor implements Serializable {
         }
         return sb.toString();
     }
+
+    public int[] getWiringRef() {
+        return wiringRef;
+    }
 }

@@ -1,22 +1,23 @@
 package patmal.course.enigma.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.UUID;
 
 @Entity
+@Data
 @Table(name = "machines_rotors")
 public class MachineRotorEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "machine_id")
-    private UUID machineId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "machine_id", nullable = false)
+    private MachineEntity machineId;
 
     @Column(name = "rotor_id")
     private Integer rotorId;

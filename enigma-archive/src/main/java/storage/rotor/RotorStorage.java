@@ -2,11 +2,12 @@ package storage.rotor;
 
 
 import hardware.parts.Rotor;
+import lombok.Getter;
 import storage.PartsStorage;
 
 import java.util.Map;
 import java.util.stream.Collectors;
-
+@Getter
 public class RotorStorage implements PartsStorage {
     private final Map<Integer, Rotor> rotorMap;
 

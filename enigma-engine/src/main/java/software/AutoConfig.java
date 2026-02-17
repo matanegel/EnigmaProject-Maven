@@ -1,7 +1,7 @@
 package software;
 
 import hardware.engine.Engine;
-import hardware.engine.rotorsManagers;
+import hardware.engine.RotorsManagers;
 import hardware.parts.Plugboard;
 import hardware.parts.Reflector;
 import hardware.parts.Rotor;
@@ -98,7 +98,7 @@ public class AutoConfig extends MachineConfig {
         storageManager.setOriginalPosition(positions);
         Reflector reflector = getRandomReflector();
 
-        rotorsManagers manager = new rotorsManagers(rotors.toArray(new Rotor[0]));
+        RotorsManagers manager = new RotorsManagers(rotors.toArray(new Rotor[0]));
         List<Integer> indexOfPositions = manager.MappingInputCharPositionByRightColumnToIndex(positions);
         manager.setRotorsPosition(indexOfPositions);
 
