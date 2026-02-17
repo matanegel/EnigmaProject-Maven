@@ -1,6 +1,7 @@
 package patmal.course.enigma.server.runtime;
 
 
+import dto.db.MachineDTO;
 import hardware.engine.Engine;
 import hardware.engine.rotorsManagers;
 import hardware.parts.Plugboard;
@@ -11,11 +12,16 @@ import jaxb.EnigmaJaxbLoader;
 import lombok.Getter;
 import lombok.Setter;
 import machine.Machine;
+import mapper.MachineMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import patmal.course.enigma.entity.MachineEntity;
+import patmal.course.enigma.postgres.MachineRepository;
 import patmal.course.enigma.server.dto.EncryptionOutputDTO;
 import patmal.course.enigma.server.dto.EnigmaManualConfigDTO;
 import patmal.course.enigma.server.dto.EnigmaStatusDTO;
+import patmal.course.enigma.server.mapper.MachineMapperApi;
 import software.AutoConfig;
 import software.MachineConfig;
 import storage.StorageManager;
@@ -26,6 +32,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static mapper.MachineMapper.toDTO;
+
 @Service
 @Getter
 @Setter
@@ -35,14 +43,20 @@ public class EnigmaRunTime {
     private CodeBuilder codeBuilder;
     private EnigmaJaxbLoader loader;
 
+    //DB repository
+    private final MachineRepository machineRepository;
+    private final MachineMapperApi machineMapper;
+
     private Boolean supplyLoaded = false;
     private Boolean machineConfigured = false;
 
-    public EnigmaRunTime(EnigmaJaxbLoader loader, Machine machine) {
+    public EnigmaRunTime(EnigmaJaxbLoader loader, Machine machine, MachineRepository machineRepository, MachineMapperApi machineMapper) {
         this.storageManager = new StorageManager(loader);
         this.machine = machine;
         this.codeBuilder = new CodeBuilder(machine, storageManager);
         this.loader = loader;
+        this.machineRepository = machineRepository;
+        this.machineMapper = machineMapper;
     }
 
     public void order1LoadSupply(InputStream xmlStream) throws Exception {
@@ -58,6 +72,8 @@ public class EnigmaRunTime {
             machine.setRotorsCount(storageManager.getRotorsAmount());
             machine.setAlphabet(storageManager.getABC());
             machine.setName(storageManager.getMachineName());
+            MachineEntity entity = machineMapper.machineToEntity(machine);
+            machineRepository.save(entity);
         }
         catch (IllegalArgumentException iae) {
             throw new Exception("Invalid XML file: " + iae.getMessage());
@@ -213,5 +229,4 @@ public class EnigmaRunTime {
         history = machine.getFullHistory();
         return history;
     }
-
 }
