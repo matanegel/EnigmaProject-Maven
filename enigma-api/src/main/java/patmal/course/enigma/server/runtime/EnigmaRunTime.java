@@ -7,24 +7,23 @@ import hardware.parts.Plugboard;
 import hardware.parts.Reflector;
 import hardware.parts.Rotor;
 import history.ConfigurationStats;
+import jakarta.persistence.EntityNotFoundException;
 import jaxb.EnigmaJaxbLoader;
 import lombok.Getter;
 import lombok.Setter;
 import machine.Machine;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import patmal.course.enigma.SessionsManager;
 import patmal.course.enigma.entity.MachineEntity;
 import patmal.course.enigma.entity.MachineReflectorEntity;
 import patmal.course.enigma.entity.MachineRotorEntity;
-import patmal.course.enigma.postgres.MachineRepository;
+import patmal.course.enigma.mapper.MapperHolder;
 import patmal.course.enigma.postgres.RepositoryHolder;
-import patmal.course.enigma.postgres.RotorsRepository;
 import patmal.course.enigma.server.dto.EncryptionOutputDTO;
 import patmal.course.enigma.server.dto.EnigmaManualConfigDTO;
 import patmal.course.enigma.server.dto.EnigmaStatusDTO;
-import patmal.course.enigma.server.mapper.MachineMapperApi;
-import patmal.course.enigma.server.mapper.MachineRotorMapper;
-import patmal.course.enigma.server.mapper.MapperHolder;
+
 import software.AutoConfig;
 import software.MachineConfig;
 import storage.StorageManager;
@@ -36,6 +35,9 @@ import java.util.*;
 @Getter
 @Setter
 public class EnigmaRunTime {
+
+    Map<UUID, Machine> sessions = new HashMap<>();
+    private  SessionsManager sessionsManager;
     private StorageManager storageManager;
     private Machine machine;
     private CodeBuilder codeBuilder;
@@ -55,6 +57,7 @@ public class EnigmaRunTime {
         this.loader = loader;
         this.repositoryHolder = repositoryHolder;
         this.mapperHolder = mapperHolder;
+        this.sessionsManager = new SessionsManager(mapperHolder, repositoryHolder);
     }
 
     public void order1LoadSupply(InputStream xmlStream) throws Exception {
@@ -228,6 +231,14 @@ public class EnigmaRunTime {
         return history;
     }
 
+    public String createSession(String machineName) {
+        String sessionID = sessionsManager.createSession(machineName);
+        return sessionID;
+    }
+
+
+
+
     private MachineEntity createBaseMachineEntity() {
         machine.setRotorsCount(storageManager.getRotorsAmount());
         machine.setAlphabet(storageManager.getABC());
@@ -239,7 +250,7 @@ public class EnigmaRunTime {
         return storageManager.getRS().getRotorMap().values().stream()
                 .map(rotor -> {
                     MachineRotorEntity entity = mapperHolder.getMachineRotorMapper().toEntity(rotor);
-                    entity.setMachineId(parent); // קישור ה-FK
+                    entity.setMachineId(parent);
                     return entity;
                 })
                 .toList();
@@ -249,7 +260,7 @@ public class EnigmaRunTime {
         return storageManager.getRFS().getReflectorMap().values().stream()
                 .map(reflector -> {
                     MachineReflectorEntity entity = mapperHolder.getMachineReflectorMapper().toEntity(reflector);
-                    entity.setMachineId(parent); // קישור ה-FK
+                    entity.setMachineId(parent);
                     return entity;
                 })
                 .toList();
