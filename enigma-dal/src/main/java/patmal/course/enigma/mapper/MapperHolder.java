@@ -1,4 +1,4 @@
-package patmal.course.enigma.server.mapper;
+package patmal.course.enigma.mapper;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

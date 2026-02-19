@@ -1,4 +1,4 @@
-package patmal.course.enigma.server.mapper;
+package patmal.course.enigma.mapper;
 import hardware.parts.Reflector;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

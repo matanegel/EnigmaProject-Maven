@@ -1,13 +1,11 @@
-package patmal.course.enigma.server.mapper;
+package patmal.course.enigma.mapper;
 
 import hardware.parts.Rotor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
-import patmal.course.enigma.entity.MachineRotorEntity;
-import patmal.course.enigma.server.dto.db.MachineRotorDTO;
 
-import java.util.UUID;
+import patmal.course.enigma.entity.MachineRotorEntity;
+
 
 @Mapper(componentModel = "spring")
 public interface MachineRotorMapper {
