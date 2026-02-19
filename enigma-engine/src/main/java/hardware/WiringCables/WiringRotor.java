@@ -63,4 +63,8 @@ public class WiringRotor implements Wiring, Serializable {
     public int getIndexOfChInRightColumn(char ch){
         return rightColumn.indexOf(ch);
     }
+
+    public String getRightColumn() {
+        return rightColumn;
+    }
 }
