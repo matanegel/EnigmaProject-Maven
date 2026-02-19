@@ -2,7 +2,7 @@ package patmal.course.enigma.server.runtime;
 
 
 import hardware.engine.Engine;
-import hardware.engine.rotorsManagers;
+import hardware.engine.RotorsManagers;
 import hardware.parts.Plugboard;
 import hardware.parts.Reflector;
 import hardware.parts.Rotor;
@@ -13,18 +13,24 @@ import lombok.Setter;
 import machine.Machine;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import patmal.course.enigma.entity.MachineEntity;
+import patmal.course.enigma.entity.MachineReflectorEntity;
+import patmal.course.enigma.entity.MachineRotorEntity;
+import patmal.course.enigma.postgres.MachineRepository;
+import patmal.course.enigma.postgres.RepositoryHolder;
+import patmal.course.enigma.postgres.RotorsRepository;
 import patmal.course.enigma.server.dto.EncryptionOutputDTO;
 import patmal.course.enigma.server.dto.EnigmaManualConfigDTO;
 import patmal.course.enigma.server.dto.EnigmaStatusDTO;
+import patmal.course.enigma.server.mapper.MachineMapperApi;
+import patmal.course.enigma.server.mapper.MachineRotorMapper;
+import patmal.course.enigma.server.mapper.MapperHolder;
 import software.AutoConfig;
 import software.MachineConfig;
 import storage.StorageManager;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Getter
@@ -35,14 +41,20 @@ public class EnigmaRunTime {
     private CodeBuilder codeBuilder;
     private EnigmaJaxbLoader loader;
 
+    //DB repository
+    private final RepositoryHolder repositoryHolder;
+    private final MapperHolder mapperHolder;
+
     private Boolean supplyLoaded = false;
     private Boolean machineConfigured = false;
 
-    public EnigmaRunTime(EnigmaJaxbLoader loader, Machine machine) {
+    public EnigmaRunTime(EnigmaJaxbLoader loader, Machine machine, RepositoryHolder repositoryHolder, MapperHolder mapperHolder) {
         this.storageManager = new StorageManager(loader);
         this.machine = machine;
         this.codeBuilder = new CodeBuilder(machine, storageManager);
         this.loader = loader;
+        this.repositoryHolder = repositoryHolder;
+        this.mapperHolder = mapperHolder;
     }
 
     public void order1LoadSupply(InputStream xmlStream) throws Exception {
@@ -50,14 +62,16 @@ public class EnigmaRunTime {
             storageManager.resetUsedIds();
             StorageManager tempSM = new StorageManager(loader);
             tempSM.loadSupplyFromStream(xmlStream);
+
             storageManager = tempSM;
             this.codeBuilder.setSM(storageManager);
-
-
             supplyLoaded = true;
-            machine.setRotorsCount(storageManager.getRotorsAmount());
-            machine.setAlphabet(storageManager.getABC());
-            machine.setName(storageManager.getMachineName());
+
+            MachineEntity machineEntity = createBaseMachineEntity();
+
+            machineEntity.setRotors(createRotorEntities(machineEntity));
+            machineEntity.setReflectors(createReflectorEntities(machineEntity));
+            repositoryHolder.getMachineRepository().save(machineEntity);
         }
         catch (IllegalArgumentException iae) {
             throw new Exception("Invalid XML file: " + iae.getMessage());
@@ -133,7 +147,7 @@ public class EnigmaRunTime {
 
 
         int rotorsCount = storageManager.getRotorsCount();
-        rotorsManagers manager = new rotorsManagers(rotors.toArray(new Rotor[0]));
+        RotorsManagers manager = new RotorsManagers(rotors.toArray(new Rotor[0]));
 
 
         storageManager.setOriginalPosition(positions);
@@ -214,4 +228,30 @@ public class EnigmaRunTime {
         return history;
     }
 
+    private MachineEntity createBaseMachineEntity() {
+        machine.setRotorsCount(storageManager.getRotorsAmount());
+        machine.setAlphabet(storageManager.getABC());
+        machine.setName(storageManager.getMachineName());
+        return mapperHolder.getMachineMapper().machineToEntity(machine);
+    }
+
+    private List<MachineRotorEntity> createRotorEntities(MachineEntity parent) {
+        return storageManager.getRS().getRotorMap().values().stream()
+                .map(rotor -> {
+                    MachineRotorEntity entity = mapperHolder.getMachineRotorMapper().toEntity(rotor);
+                    entity.setMachineId(parent); // קישור ה-FK
+                    return entity;
+                })
+                .toList();
+    }
+
+    private List<MachineReflectorEntity> createReflectorEntities(MachineEntity parent) {
+        return storageManager.getRFS().getReflectorMap().values().stream()
+                .map(reflector -> {
+                    MachineReflectorEntity entity = mapperHolder.getMachineReflectorMapper().toEntity(reflector);
+                    entity.setMachineId(parent); // קישור ה-FK
+                    return entity;
+                })
+                .toList();
+    }
 }

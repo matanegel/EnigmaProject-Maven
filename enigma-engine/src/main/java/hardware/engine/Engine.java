@@ -8,12 +8,12 @@ import java.io.Serializable;
 public class Engine implements Serializable {
 
     private final Reflector reflector;
-    private final rotorsManagers manager;
+    private final RotorsManagers manager;
     private final Plugboard plugboard;
     private final String alphabet;
     private int numberOfEncryptions = 0;
 
-    public Engine(int rotorsCount, Reflector reflector, rotorsManagers manager, Plugboard plugboard, String alphabet) {
+    public Engine(int rotorsCount, Reflector reflector, RotorsManagers manager, Plugboard plugboard, String alphabet) {
         if (manager.getRotors().length != rotorsCount) {
             throw new IllegalArgumentException(
                     "Exactly " + rotorsCount + " rotors are required to initialize the engine.");
@@ -58,7 +58,7 @@ public class Engine implements Serializable {
         return sb.toString();
     }
 
-    public rotorsManagers getRotorsManagers() {
+    public RotorsManagers getRotorsManagers() {
         return manager;
     }
 

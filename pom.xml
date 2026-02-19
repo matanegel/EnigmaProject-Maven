@@ -35,7 +35,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.7.2</version>
+                <scope>runtime</scope>
+            </dependency>
 
             <!-- Runtime implementation (includes core + txw2) -->
             <dependency>

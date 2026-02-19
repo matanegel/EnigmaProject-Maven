@@ -40,4 +40,10 @@ public class Reflector implements Serializable {
     public String getID() {
         return ID;
     }
+
+    public WiringReflactor getWiringReflactor() {
+        return wiringReflactor;
+    }
+
+
 }

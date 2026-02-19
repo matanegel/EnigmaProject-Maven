@@ -45,16 +45,8 @@ public class ConfigController {
 
     @PutMapping("/reset")
     public ResponseEntity<String> resetConfigurationToOriginal(){
-        if (enigmaRunTime.getMachine().getEngine() == null) {
-            throw new UnsupportedOperationException("Engine Not Configured Yet - Make Order 3/4 First");
-        }
-        Rotor[] rotors = enigmaRunTime.getMachine().getEngine().getRotorsManagers().getRotors();
-        List<Character> originalPosition = enigmaRunTime.getStorageManager().getOriginalPosition();
-        for (int i = 0; i < rotors.length; i++) {
-            rotors[i].setPosition(rotors[i].getWiringRotor().getIndexOfChInRightColumn(originalPosition.get(i)));
-        }
-        String initCode = enigmaRunTime.getCodeBuilder().getCode(true);
-        return ResponseEntity.ok(initCode);
+       String resposeStr = enigmaRunTime.order6RestartMachineConfig();
+        return ResponseEntity.ok(resposeStr);
     }
 
     public void printEngine(){

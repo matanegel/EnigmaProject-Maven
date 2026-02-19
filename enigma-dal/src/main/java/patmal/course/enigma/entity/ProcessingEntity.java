@@ -1,16 +1,16 @@
 package patmal.course.enigma.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.UUID;
 
 @Entity
+@Data
 @Table(name = "processing")
 public class ProcessingEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
     private UUID id;
 
