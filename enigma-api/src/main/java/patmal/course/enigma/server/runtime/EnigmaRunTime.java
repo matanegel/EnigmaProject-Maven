@@ -72,6 +72,14 @@ public class EnigmaRunTime {
 
             MachineEntity machineEntity = createBaseMachineEntity();
 
+            Boolean machineExists = repositoryHolder
+                    .getMachineRepository()
+                    .existsByName(machineEntity.getName());
+
+            if(machineExists) {
+                throw new IllegalStateException("Machine with name " + machineEntity.getName() + " already exists in the database");
+            }
+
             machineEntity.setRotors(createRotorEntities(machineEntity));
             machineEntity.setReflectors(createReflectorEntities(machineEntity));
             repositoryHolder.getMachineRepository().save(machineEntity);
@@ -231,13 +239,9 @@ public class EnigmaRunTime {
         return history;
     }
 
-    public String createSession(String machineName) {
-        String sessionID = sessionsManager.createSession(machineName);
-        return sessionID;
+    public SessionsManager getSessionsManager() {
+        return sessionsManager;
     }
-
-
-
 
     private MachineEntity createBaseMachineEntity() {
         machine.setRotorsCount(storageManager.getRotorsAmount());

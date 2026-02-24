@@ -2,6 +2,7 @@ package patmal.course.enigma;
 
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import machine.Machine;
 import patmal.course.enigma.entity.MachineEntity;
@@ -12,7 +13,7 @@ import patmal.course.enigma.postgres.RepositoryHolder;
 import java.util.HashMap;
 import java.util.UUID;
 
-
+@Getter
 @RequiredArgsConstructor
 public class SessionsManager {
 
@@ -28,6 +29,15 @@ public class SessionsManager {
             UUID sessionId = UUID.randomUUID();
             sessions.put(sessionId, currentMachine);
             return sessionId.toString();
+    }
+
+    public String DeleteSession(UUID sessionId) {
+        if (sessions.containsKey(sessionId)) {
+            sessions.remove(sessionId);
+            return "Session deleted successfully";
+        } else {
+            return "Session not found";
+        }
     }
 
 
