@@ -10,23 +10,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/load")
-public class LoadController {
-    private EnigmaRunTime enigmaRunTime;
+public class LoadController extends EnigmaController {
 
-    @Autowired
     public LoadController(EnigmaRunTime enigmaRunTime) {
-        this.enigmaRunTime = enigmaRunTime;
+        super(enigmaRunTime);
     }
 
-    @PostMapping
+    @PostMapping("/load")
     public ResponseEntity<Map<String, Object>> loadMachine(@RequestParam("file") MultipartFile file) {
         Map<String, Object> response = new HashMap<>();
 
         // 1. Validation
         if (file.isEmpty()) {
             response.put("success", false);
-            response.put("error", "File is empty.");
+            response.put("error", "File not provided");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -39,7 +36,7 @@ public class LoadController {
 
         try {
             // 2. Business Logic
-            enigmaRunTime.order1LoadSupply(file.getInputStream());
+            this.getEnigmaRunTime().order1LoadSupply(file.getInputStream());
 
             // 3. Success Response matching the Doc
             response.put("success", true);
@@ -49,7 +46,7 @@ public class LoadController {
         } catch (Exception e) {
             // 4. Error Response matching the Doc
             response.put("success", false);
-            response.put("error", "Invalid XML structure" + e.getMessage());
+            response.put("error", "Invalid XML structure");
             // Returning 200 here matches the 'Example Value' in your Swagger screenshot
             return ResponseEntity.ok(response);
         }

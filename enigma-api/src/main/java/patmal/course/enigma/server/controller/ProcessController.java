@@ -11,20 +11,17 @@ import patmal.course.enigma.server.dto.EncryptionOutputDTO;
 import patmal.course.enigma.server.runtime.EnigmaRunTime;
 
 @RestController
-@RequestMapping("/process")
-public class ProcessController {
+public class ProcessController extends EnigmaController {
 
-    private EnigmaRunTime enigmaRunTime;
 
-    @Autowired
     public ProcessController(EnigmaRunTime enigmaRunTime) {
-        this.enigmaRunTime = enigmaRunTime;
+        super(enigmaRunTime);
     }
 
-    @PostMapping
+    @PostMapping("/process")
     public ResponseEntity<EncryptionOutputDTO> encryptString(@RequestParam(name = "input") String input) {
        input = input.trim().toUpperCase();
-       ResponseEntity<EncryptionOutputDTO> response = enigmaRunTime.order5EncryptString(input);
+       ResponseEntity<EncryptionOutputDTO> response = this.getEnigmaRunTime().order5EncryptString(input);
        return response;
     }
 

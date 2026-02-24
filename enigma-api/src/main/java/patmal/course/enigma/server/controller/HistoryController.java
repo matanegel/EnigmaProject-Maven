@@ -11,19 +11,16 @@ import patmal.course.enigma.server.runtime.EnigmaRunTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/history")
-public class HistoryController {
+public class HistoryController extends EnigmaController {
 
-    private EnigmaRunTime enigmaRunTime;
 
-    @Autowired
     public HistoryController(EnigmaRunTime enigmaRunTime) {
-        this.enigmaRunTime = enigmaRunTime;
+        super(enigmaRunTime);
     }
 
-    @GetMapping
+    @GetMapping("/history")
     public ResponseEntity<List<ConfigurationStats>> showHistory(){
-        List<ConfigurationStats> history = enigmaRunTime.order7ShowHistory();
+        List<ConfigurationStats> history = this.getEnigmaRunTime().order7ShowHistory();
         return ResponseEntity.ok(history);
     }
 

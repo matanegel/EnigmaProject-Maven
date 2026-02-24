@@ -31,18 +31,18 @@ public class SessionsManager {
             return sessionId.toString();
     }
 
-    public String DeleteSession(UUID sessionId) {
+    public Boolean DeleteSession(UUID sessionId) {
         if (sessions.containsKey(sessionId)) {
             sessions.remove(sessionId);
-            return "Session deleted successfully";
+            return true;
         } else {
-            return "Session not found";
+            return false;
         }
     }
 
 
     public MachineEntity getMachineById(String name) {
         return repositoryHolder.getMachineRepository().findByName(name)
-                .orElseThrow(() -> new EntityNotFoundException("Machine with name " + name + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Unknown machine name: " + name));
     }
 }

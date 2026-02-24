@@ -11,23 +11,21 @@ import patmal.course.enigma.server.runtime.EnigmaRunTime;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/session")
-public class SessionController {
+public class SessionController extends EnigmaController {
 
-    private EnigmaRunTime enigmaRunTime;
 
     public SessionController(EnigmaRunTime enigmaRunTime) {
-        this.enigmaRunTime = enigmaRunTime;
+        super(enigmaRunTime);
     }
 
-    @PostMapping
+    @PostMapping("/session")
     public ResponseEntity<SessionDTOOutput> createSession(@RequestBody SessionDTOInput input) {
 
         if (input == null || input.getMachineName() == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        String sessionID = enigmaRunTime
+        String sessionID = this.getEnigmaRunTime()
                 .getSessionsManager().createSession(input.getMachineName());
         SessionDTOOutput response = new SessionDTOOutput();
         response.setSessionID(sessionID);
@@ -35,13 +33,16 @@ public class SessionController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/session")
     public ResponseEntity<String> deleteSession(@RequestParam("sessionID") String sessionID) {
         if (sessionID == null) {
             return ResponseEntity.badRequest().body("Session ID is required");
         }
         UUID sessionUuid = UUID.fromString(sessionID);
-        String result = enigmaRunTime.getSessionsManager().DeleteSession(sessionUuid);
-        return ResponseEntity.ok(result);
+        if(this.getEnigmaRunTime().getSessionsManager().DeleteSession(sessionUuid)){;
+            return ResponseEntity.ok("Session deleted successfully");
+        } else {
+            return ResponseEntity.status(404).body("Unknown session ID: " + sessionID);
+        }
     }
 }

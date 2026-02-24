@@ -13,44 +13,40 @@ import patmal.course.enigma.server.runtime.EnigmaRunTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/config")
-public class ConfigController {
+public class ConfigController extends EnigmaController {
 
-    private EnigmaRunTime enigmaRunTime;
-
-    @Autowired
     public ConfigController(EnigmaRunTime enigmaRunTime) {
-        this.enigmaRunTime = enigmaRunTime;
+        super(enigmaRunTime);
     }
 
-    @GetMapping
+    @GetMapping("/config")
     public EnigmaStatusDTO getMachineConfig(
             @RequestParam(name = "verbose", defaultValue = "false") boolean verbose
     ) {
-        return enigmaRunTime.order2CreateStatusDTO(verbose);
+        return this.getEnigmaRunTime().order2CreateStatusDTO(verbose);
     }
 
-    @PutMapping("/manual")
+    @PutMapping("/config/manual")
     public ResponseEntity<String> putManualConfig(@RequestBody EnigmaManualConfigDTO manualConfig) {
-        String responseStr = enigmaRunTime.order3GetManualConfig(manualConfig);
+        String responseStr = this.getEnigmaRunTime().order3GetManualConfig(manualConfig);
         return ResponseEntity.ok(responseStr);
     }
 
-    @PutMapping("/automatic")
+    @PutMapping("/config/automatic")
     public ResponseEntity<String> putAutomaticConfig() {
 
-        String responseStr = enigmaRunTime.order4GetAutomaticConfig();
+        String responseStr = this.getEnigmaRunTime().order4GetAutomaticConfig();
         return ResponseEntity.ok(responseStr);
     }
 
-    @PutMapping("/reset")
+    @PutMapping("/config/reset")
     public ResponseEntity<String> resetConfigurationToOriginal(){
-       String resposeStr = enigmaRunTime.order6RestartMachineConfig();
+       String resposeStr = this.getEnigmaRunTime().order6RestartMachineConfig();
         return ResponseEntity.ok(resposeStr);
     }
 
     public void printEngine(){
-        Engine engine = enigmaRunTime.getMachine().getEngine();
+        Engine engine = this.getEnigmaRunTime().getMachine().getEngine();
 
         for (Rotor rotor : engine.getRotorsManagers().getRotors()) {
             System.out.println("Rotor " + rotor.getID() + " position: " + rotor.getPosition());
