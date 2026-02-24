@@ -65,7 +65,9 @@ public class CodeBuilder {
                             .charAt(rotors[i].getPosition()));
             sb.append('(');
             int res = rotors[i].getNoche()
-                    - (original ? Utils.charToIndex(originalPosition.get(i), SM.getABC()) : rotors[i].getPosition());
+                    - (original ? Utils.charToIndex(originalPosition.get(i), rotors[i]
+                    .getWiringRotor().getRightColumn())
+                    : rotors[i].getPosition());
             sb.append(Utils.normalize(res, rotors[i].sizeABC));
             sb.append(')');
             sb.append(',');
