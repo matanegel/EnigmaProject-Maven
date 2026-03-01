@@ -6,6 +6,9 @@ import java.util.Arrays;
 
 public class WiringReflactor implements Serializable {
     public final int [] wiringRef;
+    public String input;
+    public String output;
+
 
     public WiringReflactor(String input , String output, int alphabetSize) {
         this.wiringRef = new int[alphabetSize];
@@ -35,6 +38,9 @@ public class WiringReflactor implements Serializable {
             this.wiringRef[in] = out;
             this.wiringRef[out] = in;
         }
+
+        this.input = input;
+        this.output = output;
     }
 
     @Override

@@ -12,6 +12,7 @@ import jaxb.EnigmaJaxbLoader;
 import jaxb.config.EnigmaConfig;
 import jaxb.config.ReflectorConfig;
 import jaxb.config.RotorConfig;
+import lombok.Setter;
 import storage.reflector.ReflectorStorage;
 import storage.rotor.RotorStorage;
 
@@ -19,9 +20,11 @@ import storage.rotor.RotorStorage;
 import java.io.InputStream;
 import java.util.List;
 
+
+@Setter
 public class StorageManager implements software.StorageProvider {
     private String machineName;
-    private final EnigmaJaxbLoader supplyLoader;
+    private EnigmaJaxbLoader supplyLoader;
     private EnigmaConfig EC;
     private EnigmaConfigMapper ECM;
     private PartsConfigValidator PCV;
@@ -35,6 +38,7 @@ public class StorageManager implements software.StorageProvider {
     public StorageManager(EnigmaJaxbLoader loader) {
        this.supplyLoader = loader;
     }
+    public StorageManager() {};
 
     private boolean validatePartsConfig() {
         if (EC.getRotors() != null) {

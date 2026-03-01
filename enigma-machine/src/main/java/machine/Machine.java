@@ -7,8 +7,10 @@ import history.ConfigurationStats;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Machine implements Serializable {
+    private UUID id;
     private String name;
     private String alphabet;
     private int rotorsCount;
@@ -18,6 +20,9 @@ public class Machine implements Serializable {
     private Engine engine;
     private List<ConfigurationStats> fullHistory = new ArrayList<>();
 
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public MachineState getState() {
         return state;

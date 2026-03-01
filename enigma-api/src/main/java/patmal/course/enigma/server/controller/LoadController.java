@@ -40,7 +40,7 @@ public class LoadController extends EnigmaController {
 
             // 3. Success Response matching the Doc
             response.put("success", true);
-            response.put("name", "Enigma-M1"); // You might want to get this from your engine
+            response.put("name", this.getEnigmaRunTime().getMachine().getName());
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {

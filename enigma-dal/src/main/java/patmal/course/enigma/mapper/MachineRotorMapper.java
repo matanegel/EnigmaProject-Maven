@@ -1,5 +1,6 @@
 package patmal.course.enigma.mapper;
 
+import hardware.WiringCables.WiringRotor;
 import hardware.parts.Rotor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,4 +21,20 @@ public interface MachineRotorMapper {
 
 
 
+    default Rotor toRotor(MachineRotorEntity entity, String alphabet) {
+        if (entity == null) return null;
+
+        WiringRotor wiring = new WiringRotor(
+                entity.getWiringRight(),
+                entity.getWiringLeft(),
+                alphabet
+        );
+
+        return new Rotor(
+                entity.getRotorId(),
+                entity.getNotch(),
+                alphabet.length(),
+                wiring
+        );
+    }
 }

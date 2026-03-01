@@ -1,10 +1,14 @@
 package hardware.parts;
 
 import hardware.WiringCables.WiringReflactor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+@Setter
+@Getter
 public class Reflector implements Serializable {
    private final String ID;
    private final WiringReflactor wiringReflactor;
