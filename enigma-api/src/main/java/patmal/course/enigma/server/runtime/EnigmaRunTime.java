@@ -35,12 +35,9 @@ import java.util.*;
 @Getter
 @Setter
 public class EnigmaRunTime {
-
-    Map<UUID, Machine> sessions = new HashMap<>();
-    private  SessionsManager sessionsManager;
     private StorageManager storageManager;
-    private Machine machine;
-    private CodeBuilder codeBuilder;
+    private SessionsManager sessionsManager;
+    private MachineBySession machineBySession;
     private EnigmaJaxbLoader loader;
 
     //DB repository
@@ -50,14 +47,42 @@ public class EnigmaRunTime {
     private Boolean supplyLoaded = false;
     private Boolean machineConfigured = false;
 
-    public EnigmaRunTime(EnigmaJaxbLoader loader, Machine machine, RepositoryHolder repositoryHolder, MapperHolder mapperHolder) {
+    @Setter
+    @Getter
+    private static class MachineBySession {
+        private UUID sessionId;
+        private StorageManager sessionStorageManager;
+        private Machine machine;
+        private CodeBuilder codeBuilder;
+
+        public MachineBySession(UUID sessionId, Machine machine, StorageManager storageManager) {
+            this.sessionId = sessionId;
+            this.sessionStorageManager = storageManager;
+            this.machine = machine;
+            this.codeBuilder = new CodeBuilder(machine, storageManager);
+        }
+    }
+
+    public EnigmaRunTime(EnigmaJaxbLoader loader, RepositoryHolder repositoryHolder, MapperHolder mapperHolder) {
         this.storageManager = new StorageManager(loader);
-        this.machine = machine;
-        this.codeBuilder = new CodeBuilder(machine, storageManager);
         this.loader = loader;
         this.repositoryHolder = repositoryHolder;
         this.mapperHolder = mapperHolder;
         this.sessionsManager = new SessionsManager(mapperHolder, repositoryHolder);
+    }
+
+    public void buildMachineBySessionId(String sessionId) {
+        UUID uuid = UUID.fromString(sessionId);
+        if (sessionsManager.getSessionIdToMachine().containsKey(uuid)) {
+
+
+
+            Machine machine = sessionsManager.getSessionIdToMachine().get(uuid);
+            StorageManager storageManager = sessionsManager.getSessionIdToStorogeManager().get(uuid);
+            this.machineBySession = new MachineBySession(uuid, machine, storageManager);
+        } else {
+            throw new EntityNotFoundException("Unknown session id: " + sessionId);
+        }
     }
 
     public void order1LoadSupply(InputStream xmlStream) throws Exception {
@@ -65,9 +90,9 @@ public class EnigmaRunTime {
             storageManager.resetUsedIds();
             StorageManager tempSM = new StorageManager(loader);
             tempSM.loadSupplyFromStream(xmlStream);
-
             storageManager = tempSM;
-            this.codeBuilder.setSM(storageManager);
+
+            this.machineBySession = new MachineBySession(null, new Machine(), storageManager);
             supplyLoaded = true;
 
             MachineEntity machineEntity = createBaseMachineEntity();
@@ -95,14 +120,14 @@ public class EnigmaRunTime {
         EnigmaStatusDTO.EnigmaStatusDTOBuilder builder = EnigmaStatusDTO.builder()
                 .totalRotors(storageManager.getRotorsAmount())
                 .totalReflectors(storageManager.getReflectorsAmount())
-                .totalProcessedMessages(machine.getEngine() != null ? machine.getEngine().getNumberOfEncryptions() : 0)
-                .originalCodeCompact(codeBuilder.getCode(true))
-                .currentRotorsPositionCompact(codeBuilder.getCode(false));
+                .totalProcessedMessages(this.machineBySession.getMachine().getEngine() != null ? this.machineBySession.getMachine().getEngine().getNumberOfEncryptions() : 0)
+                .originalCodeCompact(this.machineBySession.getCodeBuilder().getCode(true))
+                .currentRotorsPositionCompact(this.machineBySession.getCodeBuilder().getCode(false));
 
         if (verbose) {
             // Here you would call the detailed logic we planned
-            builder.originalCode(codeBuilder.buildDetailedConfig(true))
-                    .currentRotorsPosition(codeBuilder.buildDetailedConfig(false));
+            builder.originalCode(this.machineBySession.getCodeBuilder().buildDetailedConfig(true))
+                    .currentRotorsPosition(this.machineBySession.getCodeBuilder().buildDetailedConfig(false));
         }
 
         return builder.build();
@@ -166,12 +191,12 @@ public class EnigmaRunTime {
         List<Integer> indexOfPositions = manager.MappingInputCharPositionByRightColumnToIndex(positions);
         manager.setRotorsPosition(indexOfPositions);
 
-        machine.setEngine(new Engine(rotorsCount, reflector, manager, plugBoard, storageManager.getABC()));
+        this.machineBySession.getMachine().setEngine(new Engine(rotorsCount, reflector, manager, plugBoard, storageManager.getABC()));
 
 
-        String initCode = codeBuilder.getCode(true);
+        String initCode = this.machineBySession.getCodeBuilder().getCode(true);
         ConfigurationStats state = new ConfigurationStats(initCode);
-        machine.getFullHistory().add(state);
+        this.machineBySession.getMachine().getFullHistory().add(state);
 
         return "Manual code set successfully";
     }
@@ -182,15 +207,15 @@ public class EnigmaRunTime {
         }
         MachineConfig machineConfiguration = new AutoConfig(storageManager);
         Engine newEngine = machineConfiguration.configureAndGetEngine();
-        machine.setEngine(newEngine);
-        String initCode = codeBuilder.getCode(true);
+        machineBySession.getMachine().setEngine(newEngine);
+        String initCode = machineBySession.getCodeBuilder().getCode(true);
         ConfigurationStats state = new ConfigurationStats(initCode);
-        machine.getFullHistory().add(state);
+        this.machineBySession.getMachine().getFullHistory().add(state);
         return "Automatic code setup completed successfully";
     }
 
     public ResponseEntity<EncryptionOutputDTO> order5EncryptString(String input) {
-        if (machine.getEngine() == null) {
+        if (this.machineBySession.getMachine().getEngine() == null) {
             throw new UnsupportedOperationException("Engine Not Configured Yet - Make Order 3/4 First");
         }
 
@@ -199,27 +224,27 @@ public class EnigmaRunTime {
 
         patmal.course.enigma.server.dto.EncryptionOutputDTO answer = new EncryptionOutputDTO();
 
-        String cipher = machine.getEngine().processString(input);
+        String cipher = this.machineBySession.getMachine().getEngine().processString(input);
 
 
         answer.setOutput(cipher);
-        answer.setCurrentRotorsPositionCompact(codeBuilder.buildPositionString(false));
+        answer.setCurrentRotorsPositionCompact(this.machineBySession.getCodeBuilder().buildPositionString(false));
         // end measure time
         long end = System.nanoTime();
 
 
-        if (!machine.getFullHistory().isEmpty()) {
+        if (!this.machineBySession.getMachine().getFullHistory().isEmpty()) {
             // pull the last configuration stats
-            machine.getFullHistory().getLast().addProcessedString(input, cipher, (end - start));
+            this.machineBySession.getMachine().getFullHistory().getLast().addProcessedString(input, cipher, (end - start));
         }
         return ResponseEntity.ok(answer);
     }
 
     public String order6RestartMachineConfig() {
-        if (machine.getEngine() == null) {
+        if (this.machineBySession.getMachine().getEngine() == null) {
             throw new UnsupportedOperationException("Engine Not Configured Yet - Make Order 3/4 First");
         }
-        Rotor[] rotors = machine.getEngine().getRotorsManagers().getRotors();
+        Rotor[] rotors = this.machineBySession.getMachine().getEngine().getRotorsManagers().getRotors();
         List<Character> originalPosition = storageManager.getOriginalPosition();
         for (int i = 0; i < rotors.length; i++) {
             rotors[i].setPosition(rotors[i].getWiringRotor().getIndexOfChInRightColumn(originalPosition.get(i)));
@@ -229,25 +254,22 @@ public class EnigmaRunTime {
     }
 
     public List<ConfigurationStats> order7ShowHistory() {
-        if (machine.getFullHistory().isEmpty()) {
+        if (this.machineBySession.getMachine().getFullHistory().isEmpty()) {
             throw new UnsupportedOperationException ("\nNo history found. The machine hasn't been configured yet.");
         }
 
         List<ConfigurationStats> history = new ArrayList<>();
 
-        history = machine.getFullHistory();
+        history = this.machineBySession.getMachine().getFullHistory();
         return history;
     }
 
-    public SessionsManager getSessionsManager() {
-        return sessionsManager;
-    }
-
     private MachineEntity createBaseMachineEntity() {
-        machine.setRotorsCount(storageManager.getRotorsAmount());
-        machine.setAlphabet(storageManager.getABC());
-        machine.setName(storageManager.getMachineName());
-        return mapperHolder.getMachineMapper().machineToEntity(machine);
+        this.machineBySession.getMachine().setRotorsCount(storageManager.getRotorsAmount());
+        this.machineBySession.getMachine().setAlphabet(storageManager.getABC());
+        this.machineBySession.getMachine().setName(storageManager.getMachineName());
+        this.machineBySession.getMachine().setId(UUID.randomUUID());
+        return mapperHolder.getMachineMapper().machineToEntity(this.machineBySession.getMachine());
     }
 
     private List<MachineRotorEntity> createRotorEntities(MachineEntity parent) {
@@ -268,5 +290,9 @@ public class EnigmaRunTime {
                     return entity;
                 })
                 .toList();
+    }
+
+    public Machine getMachine() {
+        return this.machineBySession.getMachine();
     }
 }
