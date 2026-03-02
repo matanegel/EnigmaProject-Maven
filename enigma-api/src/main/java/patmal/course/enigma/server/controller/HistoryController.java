@@ -25,8 +25,13 @@ public class HistoryController extends EnigmaController {
         if ((sessionID == null) == (machineName == null)) {
             throw new IllegalArgumentException("Invalid request: Provide either 'sessionID' or 'machineName', but not both.");
         }
-        // no implementation for history by nameMachine
-        List<ConfigurationStats> history = this.getEnigmaRunTime().order7ShowHistoryBySessionID(sessionID);
+        List<ConfigurationStats> history;
+        if (sessionID != null) {
+            history = this.getEnigmaRunTime().order7ShowHistoryBySessionID(sessionID);
+        }
+        else {
+            history = this.getEnigmaRunTime().order7ShowHistoryByMachineName(machineName);
+        }
         return ResponseEntity.ok(history);
     }
 

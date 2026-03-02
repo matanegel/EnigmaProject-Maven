@@ -30,6 +30,7 @@ import storage.StorageManager;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Getter
@@ -271,9 +272,19 @@ public class EnigmaRunTime {
 
     public List<ConfigurationStats> order7ShowHistoryByMachineName(String machineName) {
         Optional<MachineEntity> optionalMachineEntity = this.repositoryHolder.getMachineRepository().findByName(machineName);
+        Map<String, List<ProcessingEntity>> groupedByConfig = null;
         if (optionalMachineEntity.isPresent()) {
-            this.repositoryHolder.getProcessingRepository().getProcessingEntitiesByMachineId(optionalMachineEntity.get().getId());
+            List<ProcessingEntity> allHistory = this.repositoryHolder
+                    .getProcessingRepository()
+                    .getProcessingEntitiesByMachineId(optionalMachineEntity.get());
+
+            groupedByConfig = allHistory.stream()
+                    .collect(Collectors.groupingBy(ProcessingEntity::getSessionId));
         }
+        assert groupedByConfig != null;
+        return groupedByConfig.entrySet().stream()
+                .map(entry -> this.mapperHolder.getProcessingMapper().toConfigStats(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
     }
 
     private MachineEntity createBaseMachineEntity() {

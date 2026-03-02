@@ -11,4 +11,5 @@ public class MapperHolder {
     private final MachineMapperApi machineMapper;
     private final MachineRotorMapper machineRotorMapper;
     private final MachineReflectorMapper machineReflectorMapper;
+    private final ProcessingMapper processingMapper;
 }
