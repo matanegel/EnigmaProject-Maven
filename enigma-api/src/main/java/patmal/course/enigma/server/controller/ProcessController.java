@@ -23,8 +23,8 @@ public class ProcessController extends EnigmaController {
             @RequestParam(name = "input") String input,
             @RequestParam(name = "sessionID") String sessionID) {
        input = input.trim().toUpperCase();
-       ResponseEntity<EncryptionOutputDTO> response = this.getEnigmaRunTime().order5EncryptString(input, sessionID);
-       return response;
+       EncryptionOutputDTO response = this.getEnigmaRunTime().order5EncryptString(input, sessionID);
+       return ResponseEntity.ok(response);
     }
 
 }

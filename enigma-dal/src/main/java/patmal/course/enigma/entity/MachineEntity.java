@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class MachineEntity {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Column(name = "rotors_count")
@@ -32,6 +33,9 @@ public class MachineEntity {
 
     @OneToMany(mappedBy = "machineId", cascade = CascadeType.ALL)
     private List<MachineReflectorEntity> reflectors;
+
+    @OneToMany(mappedBy = "machineId", cascade = CascadeType.ALL)
+    private List<ProcessingEntity> processing = new ArrayList<>();
 
     // Default constructor, Getters & Setters
     public MachineEntity() {}

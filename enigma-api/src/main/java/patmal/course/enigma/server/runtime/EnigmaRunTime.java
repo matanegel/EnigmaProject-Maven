@@ -12,12 +12,12 @@ import jaxb.EnigmaJaxbLoader;
 import lombok.Getter;
 import lombok.Setter;
 import machine.Machine;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import patmal.course.enigma.SessionsManager;
 import patmal.course.enigma.entity.MachineEntity;
 import patmal.course.enigma.entity.MachineReflectorEntity;
 import patmal.course.enigma.entity.MachineRotorEntity;
+import patmal.course.enigma.entity.ProcessingEntity;
 import patmal.course.enigma.mapper.MapperHolder;
 import patmal.course.enigma.postgres.RepositoryHolder;
 import patmal.course.enigma.server.dto.EncryptionOutputDTO;
@@ -217,24 +217,32 @@ public class EnigmaRunTime {
         return "Automatic code setup completed successfully";
     }
 
-    public ResponseEntity<EncryptionOutputDTO> order5EncryptString(String input, String sessionID) {
+    public EncryptionOutputDTO order5EncryptString(String input, String sessionID) {
+        ProcessingEntity processingEntity = new ProcessingEntity();
+
         this.buildMachineBySessionId(sessionID);
         if (this.machineBySession.getMachine().getEngine() == null) {
             throw new UnsupportedOperationException("Engine Not Configured Yet - Make Order 3/4 First");
         }
         long start = System.nanoTime();
         patmal.course.enigma.server.dto.EncryptionOutputDTO answer = new EncryptionOutputDTO();
+        String currentCode = this.machineBySession.getCodeBuilder().getCode(false);
         String cipher = this.machineBySession.getMachine().getEngine().processString(input);
         answer.setOutput(cipher);
-        answer.setCurrentRotorsPositionCompact(this.machineBySession.getCodeBuilder().buildPositionString(false));
+        answer.setCurrentRotorsPositionCompact(currentCode);
         // end measure time
         long end = System.nanoTime();
+        long duration = (end - start);
 
         if (!this.machineBySession.getMachine().getFullHistory().isEmpty()) {
             // pull the last configuration stats
-            this.machineBySession.getMachine().getFullHistory().getLast().addProcessedString(input, cipher, (end - start));
+            this.machineBySession.getMachine().getFullHistory().getLast().addProcessedString(input, cipher, duration);
         }
-        return ResponseEntity.ok(answer);
+        Optional<MachineEntity> machineEntity = this.repositoryHolder
+                .getMachineRepository()
+                .findByName(this.machineBySession.getMachine().getName());
+        machineEntity.ifPresent(entity -> this.saveProcessingToDb(entity, currentCode, input, cipher, duration));
+        return answer;
     }
 
     public String order6RestartMachineConfig(String sessionID) {
@@ -251,16 +259,21 @@ public class EnigmaRunTime {
         return "Code rested completed successfully";
     }
 
-    public List<ConfigurationStats> order7ShowHistory(String sessionID, String machineName) {
+    public List<ConfigurationStats> order7ShowHistoryBySessionID(String sessionID) {
         List<ConfigurationStats> history = new ArrayList<>();
-        if (sessionID != null) {
-            this.buildMachineBySessionId(sessionID);
-            if (this.machineBySession.getMachine().getFullHistory().isEmpty()) {
-                throw new UnsupportedOperationException("\nNo history found. The machine hasn't been configured yet.");
-            }
-            history = this.machineBySession.getMachine().getFullHistory();
+        this.buildMachineBySessionId(sessionID);
+        if (this.machineBySession.getMachine().getFullHistory().isEmpty()) {
+            throw new UnsupportedOperationException("\nNo history found. The machine hasn't been configured yet.");
         }
+        history = this.machineBySession.getMachine().getFullHistory();
         return history;
+    }
+
+    public List<ConfigurationStats> order7ShowHistoryByMachineName(String machineName) {
+        Optional<MachineEntity> optionalMachineEntity = this.repositoryHolder.getMachineRepository().findByName(machineName);
+        if (optionalMachineEntity.isPresent()) {
+            this.repositoryHolder.getProcessingRepository().getProcessingEntitiesByMachineId(optionalMachineEntity.get().getId());
+        }
     }
 
     private MachineEntity createBaseMachineEntity() {
@@ -293,5 +306,19 @@ public class EnigmaRunTime {
 
     public Machine getMachine() {
         return this.machineBySession.getMachine();
+    }
+
+    private void saveProcessingToDb(MachineEntity machineEntity, String code, String input, String output, long duration) {
+
+        ProcessingEntity processingEntity = new ProcessingEntity();
+        processingEntity.setMachineId(machineEntity);
+        processingEntity.setSessionId(this.machineBySession.getSessionId().toString());
+        processingEntity.setCode(code);
+        processingEntity.setInput(input);
+        processingEntity.setOutput(output);
+        processingEntity.setTime(duration);
+
+        machineEntity.getProcessing().add(processingEntity);
+        this.repositoryHolder.getProcessingRepository().save(processingEntity);
     }
 }

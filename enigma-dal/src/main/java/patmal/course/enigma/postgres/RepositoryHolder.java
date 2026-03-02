@@ -13,4 +13,5 @@ public class RepositoryHolder {
     private final MachineRepository machineRepository;
     private final RotorsRepository rotorsRepository;
     private final ReflectorRepository reflectorRepository;;
+    private final ProcessingRepository processingRepository;
 }
