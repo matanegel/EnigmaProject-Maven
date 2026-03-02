@@ -19,9 +19,11 @@ public class ProcessController extends EnigmaController {
     }
 
     @PostMapping("/process")
-    public ResponseEntity<EncryptionOutputDTO> encryptString(@RequestParam(name = "input") String input) {
+    public ResponseEntity<EncryptionOutputDTO> encryptString(
+            @RequestParam(name = "input") String input,
+            @RequestParam(name = "sessionID") String sessionID) {
        input = input.trim().toUpperCase();
-       ResponseEntity<EncryptionOutputDTO> response = this.getEnigmaRunTime().order5EncryptString(input);
+       ResponseEntity<EncryptionOutputDTO> response = this.getEnigmaRunTime().order5EncryptString(input, sessionID);
        return response;
     }
 

@@ -81,8 +81,4 @@ public class Machine implements Serializable {
     public List<ConfigurationStats> getFullHistory() {
         return fullHistory;
     }
-
-    public void setFullHistory(List<ConfigurationStats> fullHistory) {
-        this.fullHistory = fullHistory;
-    }
 }

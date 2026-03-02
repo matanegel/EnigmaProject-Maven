@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import patmal.course.enigma.server.runtime.EnigmaRunTime;
 
@@ -19,8 +20,15 @@ public class HistoryController extends EnigmaController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<ConfigurationStats>> showHistory(){
-        List<ConfigurationStats> history = this.getEnigmaRunTime().order7ShowHistory();
+    public ResponseEntity<List<ConfigurationStats>> showHistory(
+            @RequestParam(name = "sessionID", required = false) String sessionID,
+            @RequestParam(name = "machineName", required = false) String machineName) {
+        // Logical XOR: true only if exactly one is non-null
+        if ((sessionID == null) == (machineName == null)) {
+            throw new IllegalArgumentException("Invalid request: Provide either 'sessionID' or 'machineName', but not both.");
+        }
+        // no implementation for history by nameMachine
+        List<ConfigurationStats> history = this.getEnigmaRunTime().order7ShowHistory(sessionID, machineName);
         return ResponseEntity.ok(history);
     }
 

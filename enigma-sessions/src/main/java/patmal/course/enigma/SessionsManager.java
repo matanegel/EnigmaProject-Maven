@@ -51,6 +51,7 @@ public class SessionsManager {
     public Boolean DeleteSession(UUID sessionId) {
         if (sessionIdToMachine.containsKey(sessionId)) {
             sessionIdToMachine.remove(sessionId);
+            sessionIdToStorogeManager.remove(sessionId);
             return true;
         } else {
             return false;

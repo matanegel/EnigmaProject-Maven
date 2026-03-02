@@ -21,9 +21,10 @@ public class ConfigController extends EnigmaController {
 
     @GetMapping("/config")
     public EnigmaStatusDTO getMachineConfig(
+            @RequestParam(name =  "sessionID") String sessionID,
             @RequestParam(name = "verbose", defaultValue = "false") boolean verbose
     ) {
-        return this.getEnigmaRunTime().order2CreateStatusDTO(verbose);
+        return this.getEnigmaRunTime().order2CreateStatusDTO(sessionID, verbose);
     }
 
     @PutMapping("/config/manual")
@@ -33,15 +34,15 @@ public class ConfigController extends EnigmaController {
     }
 
     @PutMapping("/config/automatic")
-    public ResponseEntity<String> putAutomaticConfig() {
+    public ResponseEntity<String> putAutomaticConfig(@RequestParam(name = "sessionID") String sessionID) {
 
-        String responseStr = this.getEnigmaRunTime().order4GetAutomaticConfig();
+        String responseStr = this.getEnigmaRunTime().order4GetAutomaticConfig(sessionID);
         return ResponseEntity.ok(responseStr);
     }
 
     @PutMapping("/config/reset")
-    public ResponseEntity<String> resetConfigurationToOriginal(){
-       String resposeStr = this.getEnigmaRunTime().order6RestartMachineConfig();
+    public ResponseEntity<String> resetConfigurationToOriginal(@RequestParam(name = "sessionID") String sessionID){
+       String resposeStr = this.getEnigmaRunTime().order6RestartMachineConfig(sessionID);
         return ResponseEntity.ok(resposeStr);
     }
 

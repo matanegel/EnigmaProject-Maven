@@ -5,6 +5,7 @@ package storage;
 import hardware.Utils;
 import hardware.parts.Reflector;
 import hardware.parts.Rotor;
+import history.ConfigurationStats;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import jaxb.EnigmaConfigMapper;
@@ -18,6 +19,7 @@ import storage.rotor.RotorStorage;
 
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -33,6 +35,7 @@ public class StorageManager implements software.StorageProvider {
     private String ABC;
     private int rotorsCount;
     private List<Character>  originalPosition;
+    private List<ConfigurationStats> historyForXml = new ArrayList<>();
     private boolean ValidSupply = false;
 
     public StorageManager(EnigmaJaxbLoader loader) {

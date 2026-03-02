@@ -1,9 +1,16 @@
 package history;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class ConfigurationStats implements Serializable {
 
     private String machineConfiguration;
@@ -16,13 +23,6 @@ public class ConfigurationStats implements Serializable {
 
     public void addProcessedString(String src, String res, long time) {
         processedStrings.add(new ProcessedString(src, res, time));
-    }
-
-    public String getMachineConfiguration() {
-        return machineConfiguration;
-    }
-    public List<ProcessedString> getProcessedStrings() {
-        return processedStrings;
     }
 
     @Override

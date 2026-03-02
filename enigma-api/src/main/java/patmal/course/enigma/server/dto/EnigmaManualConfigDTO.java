@@ -8,6 +8,7 @@ import java.util.List;
 
 @Data
 public class EnigmaManualConfigDTO {
+    private String sessionID;
     private List<RotorSelectionDTO> rotors;
     private String reflector;
     private List<PlugPairDTO> plugs;
