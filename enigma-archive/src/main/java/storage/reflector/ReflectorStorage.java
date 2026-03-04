@@ -55,8 +55,14 @@ public class ReflectorStorage implements PartsStorage {
             case "3" -> "III";
             case "4" -> "IV";
             case "5" -> "V";
+            case "A" -> "I";
+            case "B" -> "II";
+            case "C" -> "III";
+            case "D" -> "IV";
+            case "E" -> "V";
             default -> throw new IllegalArgumentException("Invalid reflector ID: " + id);
         };
+
     }
 
     private Integer convertRomeToNumber(String id) {
