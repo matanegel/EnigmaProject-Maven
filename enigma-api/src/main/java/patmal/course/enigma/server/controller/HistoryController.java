@@ -23,7 +23,7 @@ public class HistoryController extends EnigmaController {
             @RequestParam(name = "machineName", required = false) String machineName) {
         // Logical XOR: true only if exactly one is non-null
         if ((sessionID == null) == (machineName == null)) {
-            throw new IllegalArgumentException("Invalid request: Provide either 'sessionID' or 'machineName', but not both.");
+            throw new IllegalArgumentException("Exactly one of sessionID or machineName must be provided");
         }
         List<ConfigurationStats> history;
         if (sessionID != null) {
