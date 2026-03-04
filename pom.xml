@@ -11,47 +11,55 @@
 
 
     <modules>
-        <module>console</module>
-        <module>machine</module>
-        <module>loader</module>
-        <module>engine</module>
-        <module>archive</module>
+        <module>enigma-console</module>
+        <module>enigma-machine</module>
+        <module>enigma-loader</module>
+        <module>enigma-engine</module>
+        <module>enigma-archive</module>
+        <module>enigma-api</module>
+        <module>enigma-dal</module>
+        <module>enigma-sessions</module>
     </modules>
 
     <properties>
+        <lombok.version>1.18.42</lombok.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Centralize JAXB versions -->
-        <jaxb.api.version>2.3.1</jaxb.api.version>
-        <jaxb.runtime.version>2.3.2</jaxb.runtime.version>
-        <activation.version>1.2.0</activation.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.3.4</version> <!-- compatible with Java 21 -->
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.7.2</version>
+                <scope>runtime</scope>
+            </dependency>
 
-    <!-- JAXB dependencies for Java 9+ (JDK 21) since JAXB was removed from the JDK -->
-    <!-- Declared at parent so all modules can use JAXB without repeating versions -->
-    <dependencies>
-        <!-- API with javax.* packages to match current imports in the codebase -->
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>${jaxb.api.version}</version>
-        </dependency>
+            <!-- Runtime implementation (includes core + txw2) -->
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>4.0.2</version>
+            </dependency>
 
-        <!-- Runtime implementation (includes core + txw2) -->
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>${jaxb.runtime.version}</version>
-        </dependency>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>4.0.2</version>
+            </dependency>
 
-        <!-- Activation Framework for Java 9+ when using javax.* JAXB -->
-        <dependency>
-            <groupId>com.sun.activation</groupId>
-            <artifactId>javax.activation</artifactId>
-            <version>${activation.version}</version>
-        </dependency>
-    </dependencies>
+
+        </dependencies>
+    </dependencyManagement>
+
 
 </project>

@@ -1,0 +1,77 @@
+# General OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# Java build outputs and logs
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+
+# Maven
+# Ignore all module build directories (applies to all sub-modules)
+target/
+# Maven release/versions plugin backup files
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# Note: keep Maven Wrapper JAR tracked if present for reproducible builds
+# .mvn/wrapper/maven-wrapper.jar
+
+# Gradle (not used here, but safe in case of future addition)
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+.loadpath
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Logs and temp files
+logs/
+*.tmp
+*.swp
+*.swo
+
+# Environment files (secrets)
+.env
+.env.*
+*.env
+
+# Archive artifacts (should be produced under target/ anyway)
+*.jar
+*.war
+*.ear
+
+# OS-specific or sync service artifacts
+Icon?
+# Windows Thumbs.db already above; OneDrive/Office temp handled by ~$*
+
+# Backup/patch leftovers
+*.orig
+*.rej

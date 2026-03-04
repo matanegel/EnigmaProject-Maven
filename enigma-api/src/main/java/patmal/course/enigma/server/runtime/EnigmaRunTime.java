@@ -1,0 +1,341 @@
+package patmal.course.enigma.server.runtime;
+
+
+import hardware.engine.Engine;
+import hardware.engine.RotorsManagers;
+import hardware.parts.Plugboard;
+import hardware.parts.Reflector;
+import hardware.parts.Rotor;
+import history.ConfigurationStats;
+import jakarta.persistence.EntityNotFoundException;
+import jaxb.EnigmaJaxbLoader;
+import lombok.Getter;
+import lombok.Setter;
+import machine.Machine;
+import org.springframework.stereotype.Service;
+import patmal.course.enigma.SessionsManager;
+import patmal.course.enigma.entity.MachineEntity;
+import patmal.course.enigma.entity.MachineReflectorEntity;
+import patmal.course.enigma.entity.MachineRotorEntity;
+import patmal.course.enigma.entity.ProcessingEntity;
+import patmal.course.enigma.mapper.MapperHolder;
+import patmal.course.enigma.postgres.RepositoryHolder;
+import patmal.course.enigma.server.dto.EncryptionOutputDTO;
+import patmal.course.enigma.server.dto.EnigmaManualConfigDTO;
+import patmal.course.enigma.server.dto.EnigmaStatusDTO;
+
+import software.AutoConfig;
+import software.MachineConfig;
+import storage.StorageManager;
+
+import java.io.InputStream;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@Getter
+@Setter
+public class EnigmaRunTime {
+    private StorageManager storageManager;
+    private SessionsManager sessionsManager;
+    private MachineBySession machineBySession;
+    private EnigmaJaxbLoader loader;
+
+    //DB repository
+    private final RepositoryHolder repositoryHolder;
+    private final MapperHolder mapperHolder;
+
+    private Boolean supplyLoaded = false;
+    private Boolean machineConfigured = false;
+
+    @Setter
+    @Getter
+    private static class MachineBySession {
+        private UUID sessionId;
+        private StorageManager sessionStorageManager;
+        private Machine machine;
+        private CodeBuilder codeBuilder;
+
+        public MachineBySession(UUID sessionId, Machine machine, StorageManager storageManager) {
+            this.sessionId = sessionId;
+            this.sessionStorageManager = storageManager;
+            this.machine = machine;
+            this.codeBuilder = new CodeBuilder(machine, storageManager);
+        }
+    }
+
+    public EnigmaRunTime(EnigmaJaxbLoader loader, RepositoryHolder repositoryHolder, MapperHolder mapperHolder) {
+        this.storageManager = new StorageManager(loader);
+        this.loader = loader;
+        this.repositoryHolder = repositoryHolder;
+        this.mapperHolder = mapperHolder;
+        this.sessionsManager = new SessionsManager(mapperHolder, repositoryHolder);
+    }
+
+    public void buildMachineBySessionId(String sessionId) {
+        UUID uuid = UUID.fromString(sessionId);
+        if (sessionsManager.getSessionIdToMachine().containsKey(uuid)) {
+
+
+
+            Machine machine = sessionsManager.getSessionIdToMachine().get(uuid);
+            StorageManager storageManager = sessionsManager.getSessionIdToStorogeManager().get(uuid);
+            this.machineBySession = new MachineBySession(uuid, machine, storageManager);
+        } else {
+            throw new EntityNotFoundException("Unknown session id: " + sessionId);
+        }
+    }
+
+    public void order1LoadSupply(InputStream xmlStream) throws Exception {
+        try {
+            storageManager.resetUsedIds();
+            StorageManager tempSM = new StorageManager(loader);
+            tempSM.loadSupplyFromStream(xmlStream);
+            storageManager = tempSM;
+
+            this.machineBySession = new MachineBySession(null, new Machine(), storageManager);
+            supplyLoaded = true;
+
+            MachineEntity machineEntity = createBaseMachineEntity();
+
+            Boolean machineExists = repositoryHolder
+                    .getMachineRepository()
+                    .existsByName(machineEntity.getName());
+
+            if(machineExists) {
+                throw new IllegalStateException("Machine with name " + machineEntity.getName() + " already exists in the database");
+            }
+
+            machineEntity.setRotors(createRotorEntities(machineEntity));
+            machineEntity.setReflectors(createReflectorEntities(machineEntity));
+            repositoryHolder.getMachineRepository().save(machineEntity);
+        }
+        catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+    }
+
+    public EnigmaStatusDTO order2CreateStatusDTO(String sessionID, Boolean verbose) {
+        this.buildMachineBySessionId(sessionID);
+        EnigmaStatusDTO.EnigmaStatusDTOBuilder builder = EnigmaStatusDTO.builder()
+                .totalRotors(this.machineBySession.getSessionStorageManager().getRotorsAmount())
+                .totalReflectors(this.machineBySession.getSessionStorageManager().getReflectorsAmount())
+                .totalProcessedMessages(this.machineBySession.getMachine().getEngine() != null ? this.machineBySession.getMachine().getEngine().getNumberOfEncryptions() : 0)
+                .originalCodeCompact(this.machineBySession.getCodeBuilder().getCode(true))
+                .currentRotorsPositionCompact(this.machineBySession.getCodeBuilder().getCode(false));
+
+        if (verbose) {
+            // Here you would call the detailed logic we planned
+            builder.originalCode(this.machineBySession.getCodeBuilder().buildDetailedConfig(true))
+                    .currentRotorsPosition(this.machineBySession.getCodeBuilder().buildDetailedConfig(false));
+        }
+
+        return builder.build();
+    }
+
+    public String order3GetManualConfig(EnigmaManualConfigDTO manualConfig) {
+        this.buildMachineBySessionId(manualConfig.getSessionID());
+        List<Character> positions = new ArrayList<>();
+        Set<Integer> usedRotors = new HashSet<>();
+        List<Rotor> rotors = new ArrayList<>();
+        Plugboard plugBoard = new Plugboard(this.machineBySession.getSessionStorageManager().getABC());
+        if (!supplyLoaded) {
+            throw new UnsupportedOperationException("XML File Not Loaded Yet - Make Order 1 First");
+        }
+
+
+        for (EnigmaManualConfigDTO.RotorSelectionDTO rotorSelection : manualConfig.getRotors()) {
+            int rotorId = rotorSelection.getRotorNumber();
+            if (usedRotors.contains(rotorId)) {
+                throw new IllegalStateException("Cannot build enigma machine with duplicate rotors");
+            }
+            usedRotors.add(rotorId);
+            rotors.add(this.machineBySession.getSessionStorageManager().optionalGetRotorByID(rotorId));
+
+            if(!this.machineBySession.getMachine().getAlphabet().contains(rotorSelection.getRotorPosition().toUpperCase())){
+                throw new IllegalArgumentException("Rotor position must be a letter from the alphabet");
+            }
+
+            if (rotorSelection.getRotorPosition() != null && !rotorSelection.getRotorPosition().isEmpty()) {
+
+                positions.add(Character.toUpperCase(rotorSelection.getRotorPosition().charAt(0)));
+            }
+        }
+        rotors = new ArrayList<>(rotors.reversed());
+
+        if (rotors.size() != positions.size()) {
+            throw new IllegalArgumentException("Number of positions must match rotors amount");
+        }
+
+        positions = positions.reversed();
+        this.machineBySession.getSessionStorageManager().setOriginalPosition(positions);
+        Reflector reflector = this.machineBySession.getSessionStorageManager().optionalGetReflectorByID(manualConfig.getReflector());
+
+
+        try {
+            if (manualConfig.getPlugs() != null && !manualConfig.getPlugs().isEmpty()) {
+                StringBuilder plugStringBuilder = new StringBuilder();
+                for (EnigmaManualConfigDTO.PlugPairDTO plugPair : manualConfig.getPlugs()) {
+                    plugStringBuilder.append(plugPair.getPlug1());
+                    plugStringBuilder.append(plugPair.getPlug2());
+                }
+
+                String pipeFormat = Plugboard.parsePairFormat(plugStringBuilder.toString());
+                plugBoard = new Plugboard(this.machineBySession.getSessionStorageManager().getABC(), pipeFormat);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid plugboard configuration: " + e.getMessage());
+        }
+
+
+        int rotorsCount = this.machineBySession.getSessionStorageManager().getRotorsCount();
+        RotorsManagers manager = new RotorsManagers(rotors.toArray(new Rotor[0]));
+
+
+        this.machineBySession.getSessionStorageManager().setOriginalPosition(positions);
+
+        List<Integer> indexOfPositions = manager.MappingInputCharPositionByRightColumnToIndex(positions);
+        manager.setRotorsPosition(indexOfPositions);
+
+        this.machineBySession.getMachine().setEngine(new Engine(rotorsCount, reflector, manager, plugBoard, this.machineBySession.getSessionStorageManager().getABC()));
+
+
+        String initCode = this.machineBySession.getCodeBuilder().getCode(true);
+        ConfigurationStats state = new ConfigurationStats(initCode);
+        this.machineBySession.getMachine().getFullHistory().add(state);
+
+        return "Manual code set successfully";
+    }
+
+    public String order4GetAutomaticConfig(String sessionID) {
+        if (!supplyLoaded) {
+            throw new UnsupportedOperationException("XML File Not Loaded Yet - Make Order 1 First");
+        }
+        this.buildMachineBySessionId(sessionID);
+        MachineConfig machineConfiguration = new AutoConfig(this.machineBySession.getSessionStorageManager());
+        Engine newEngine = machineConfiguration.configureAndGetEngine();
+        machineBySession.getMachine().setEngine(newEngine);
+        String initCode = machineBySession.getCodeBuilder().getCode(true);
+        ConfigurationStats state = new ConfigurationStats(initCode);
+        this.machineBySession.getMachine().getFullHistory().add(state);
+        return "Automatic code setup completed successfully";
+    }
+
+    public EncryptionOutputDTO order5EncryptString(String input, String sessionID) {
+        ProcessingEntity processingEntity = new ProcessingEntity();
+
+        this.buildMachineBySessionId(sessionID);
+        if (this.machineBySession.getMachine().getEngine() == null) {
+            throw new UnsupportedOperationException("Engine Not Configured Yet - Make Order 3/4 First");
+        }
+        long start = System.nanoTime();
+        patmal.course.enigma.server.dto.EncryptionOutputDTO answer = new EncryptionOutputDTO();
+        String currentCode = this.machineBySession.getCodeBuilder().getCode(false);
+        String cipher = this.machineBySession.getMachine().getEngine().processString(input);
+        answer.setOutput(cipher);
+        answer.setCurrentRotorsPositionCompact(currentCode);
+        // end measure time
+        long end = System.nanoTime();
+        long duration = (end - start);
+
+        if (!this.machineBySession.getMachine().getFullHistory().isEmpty()) {
+            // pull the last configuration stats
+            this.machineBySession.getMachine().getFullHistory().getLast().addProcessedString(input, cipher, duration);
+        }
+        Optional<MachineEntity> machineEntity = this.repositoryHolder
+                .getMachineRepository()
+                .findByName(this.machineBySession.getMachine().getName());
+        machineEntity.ifPresent(entity -> this.saveProcessingToDb(entity, currentCode, input, cipher, duration));
+        return answer;
+    }
+
+    public String order6RestartMachineConfig(String sessionID) {
+        this.buildMachineBySessionId(sessionID);
+        if (this.machineBySession.getMachine().getEngine() == null) {
+            throw new UnsupportedOperationException("Engine Not Configured Yet - Make Order 3/4 First");
+        }
+        Rotor[] rotors = this.machineBySession.getMachine().getEngine().getRotorsManagers().getRotors();
+        List<Character> originalPosition = this.machineBySession.getSessionStorageManager().getOriginalPosition();
+        for (int i = 0; i < rotors.length; i++) {
+            rotors[i].setPosition(rotors[i].getWiringRotor().getIndexOfChInRightColumn(originalPosition.get(i)));
+        }
+        //String initCode = codeBuilder.getCode(true);
+        return "Code rested completed successfully";
+    }
+
+    public List<ConfigurationStats> order7ShowHistoryBySessionID(String sessionID) {
+
+        List<ConfigurationStats> history = new ArrayList<>();
+        this.buildMachineBySessionId(sessionID);
+        if (this.machineBySession.getMachine().getFullHistory().isEmpty()) {
+            throw new UnsupportedOperationException("\nNo history found. The machine hasn't been configured yet.");
+        }
+        history = this.machineBySession.getMachine().getFullHistory();
+        return history;
+    }
+
+    public List<ConfigurationStats> order7ShowHistoryByMachineName(String machineName) {
+        Optional<MachineEntity> optionalMachineEntity = this.repositoryHolder.getMachineRepository().findByName(machineName);
+        if (optionalMachineEntity.isEmpty()) {
+            throw new EntityNotFoundException("Machine with name " + machineName + " not found");
+        }
+        Map<String, List<ProcessingEntity>> groupedByConfig = null;
+        List<ProcessingEntity> allHistory = this.repositoryHolder
+                .getProcessingRepository()
+                .getProcessingEntitiesByMachineId(optionalMachineEntity.get());
+
+
+        groupedByConfig = allHistory.stream()
+                .collect(Collectors.groupingBy(ProcessingEntity::getSessionId));
+
+        return groupedByConfig.entrySet().stream()
+                .map(entry -> this.mapperHolder.getProcessingMapper().toConfigStats(null, entry.getValue(), entry.getKey()))
+                .collect(Collectors.toList());
+    }
+
+    private MachineEntity createBaseMachineEntity() {
+        this.machineBySession.getMachine().setRotorsCount(storageManager.getRotorsAmount());
+        this.machineBySession.getMachine().setAlphabet(storageManager.getABC());
+        this.machineBySession.getMachine().setName(storageManager.getMachineName());
+        this.machineBySession.getMachine().setId(UUID.randomUUID());
+        return mapperHolder.getMachineMapper().machineToEntity(this.machineBySession.getMachine());
+    }
+
+    private List<MachineRotorEntity> createRotorEntities(MachineEntity parent) {
+        return storageManager.getRS().getRotorMap().values().stream()
+                .map(rotor -> {
+                    MachineRotorEntity entity = mapperHolder.getMachineRotorMapper().toEntity(rotor);
+                    entity.setMachineId(parent);
+                    return entity;
+                })
+                .toList();
+    }
+
+    private List<MachineReflectorEntity> createReflectorEntities(MachineEntity parent) {
+        return storageManager.getRFS().getReflectorMap().values().stream()
+                .map(reflector -> {
+                    MachineReflectorEntity entity = mapperHolder.getMachineReflectorMapper().toEntity(reflector);
+                    entity.setMachineId(parent);
+                    return entity;
+                })
+                .toList();
+    }
+
+    public Machine getMachine() {
+        return this.machineBySession.getMachine();
+    }
+
+    private void saveProcessingToDb(MachineEntity machineEntity, String code, String input, String output, long duration) {
+
+        ProcessingEntity processingEntity = new ProcessingEntity();
+        processingEntity.setMachineId(machineEntity);
+        processingEntity.setSessionId(this.machineBySession.getSessionId().toString());
+        processingEntity.setCode(code);
+        processingEntity.setInput(input);
+        processingEntity.setOutput(output);
+        processingEntity.setTime(duration);
+
+        machineEntity.getProcessing().add(processingEntity);
+        this.repositoryHolder.getProcessingRepository().save(processingEntity);
+    }
+}
