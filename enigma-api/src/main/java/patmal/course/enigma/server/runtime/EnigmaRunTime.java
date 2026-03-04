@@ -151,6 +151,11 @@ public class EnigmaRunTime {
             }
             usedRotors.add(rotorId);
             rotors.add(this.machineBySession.getSessionStorageManager().optionalGetRotorByID(rotorId));
+
+            if(!this.machineBySession.getMachine().getAlphabet().contains(rotorSelection.getRotorPosition())){
+                throw new IllegalArgumentException("Rotor position must be a letter from the alphabet");
+            }
+
             if (rotorSelection.getRotorPosition() != null && !rotorSelection.getRotorPosition().isEmpty()) {
 
                 positions.add(Character.toUpperCase(rotorSelection.getRotorPosition().charAt(0)));
