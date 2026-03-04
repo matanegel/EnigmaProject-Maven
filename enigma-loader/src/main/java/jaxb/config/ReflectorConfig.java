@@ -76,11 +76,11 @@ public class ReflectorConfig implements WiredPart {
             int output = mapping.getOutput();
 
             if (!mapping.validWiring(minPort, maxPort)) {
-                return false;
+               throw new IllegalArgumentException("Invalid wiring found in reflector: port is not in the range ");
             }
 
             if (usedInputs[input - minPort] || usedOutputs[output - minPort]) {
-                return false; // Duplicate input or output
+                throw new IllegalArgumentException("Duplicate wiring found in reflector: port is used more than once");
             }
 
             usedInputs[input - minPort] = true;
