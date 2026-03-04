@@ -110,10 +110,8 @@ public class EnigmaRunTime {
             machineEntity.setReflectors(createReflectorEntities(machineEntity));
             repositoryHolder.getMachineRepository().save(machineEntity);
         }
-        catch (IllegalArgumentException iae) {
-            throw new Exception("Invalid XML file: " + iae.getMessage());
-        } catch (Exception e) {
-            throw new Exception("Failed to load XML file: " + e.getMessage());
+        catch (Exception e) {
+            throw new Exception(e.getMessage());
         }
     }
 
