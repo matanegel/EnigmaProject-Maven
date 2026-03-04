@@ -46,7 +46,7 @@ public class LoadController extends EnigmaController {
         } catch (Exception e) {
             // 4. Error Response matching the Doc
             response.put("success", false);
-            response.put("error", "Invalid XML structure");
+            response.put("error", "Invalid XML structure" + (e.getMessage() != null ? ": " + e.getMessage() : ""));
             // Returning 200 here matches the 'Example Value' in your Swagger screenshot
             return ResponseEntity.ok(response);
         }

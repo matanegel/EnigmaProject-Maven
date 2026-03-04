@@ -65,14 +65,27 @@ public class EnigmaConfig {
     }
 
     public boolean validateWires() {
-        for (RotorConfig rotor : rotors) {
-            if (!rotor.rotorWiringisValid(alphabet)) {
-                return false;
-            }
-        }
+
+           for (RotorConfig rotor : rotors) {
+               try {
+
+                   if (!rotor.rotorWiringisValid(alphabet)) {
+                       return false;
+                   }
+               }
+               catch (IllegalArgumentException e) {
+                   throw new IllegalArgumentException("in rotor " + rotor.getID() + " - " + e.getMessage());
+               }
+           }
+
         for (ReflectorConfig reflector : reflectors) {
-            if (!reflector.reflectorWiringisValid()) {
-                return false;
+            try {
+                if (!reflector.reflectorWiringisValid()) {
+                    return false;
+                }
+            }
+            catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("in reflector " + reflector.getId() + " - " + e.getMessage());
             }
         }
         return true;

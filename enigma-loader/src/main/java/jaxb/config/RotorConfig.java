@@ -79,10 +79,10 @@ public class RotorConfig implements WiredPart {
             String left = position.getLeft();
 
             if(!(ABC.contains(right)) || !(ABC.contains(left)) ) {
-                return false;
+                throw new IllegalArgumentException("Invalid port found in rotor wiring: " + right + " or " + left);
             }
             if (usedReoutorInPorts.contains(ABC.indexOf(right)) || usedReoutorOutPorts.contains(ABC.indexOf(left))) {
-                return false; // Duplicate found
+                throw new IllegalArgumentException("Duplicate port found in rotor wiring: " + right + " or " + left);
             }
             usedReoutorInPorts.add(ABC.indexOf(right));
             usedReoutorOutPorts.add(ABC.indexOf(left));

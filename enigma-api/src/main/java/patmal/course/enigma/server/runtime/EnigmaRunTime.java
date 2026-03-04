@@ -110,10 +110,8 @@ public class EnigmaRunTime {
             machineEntity.setReflectors(createReflectorEntities(machineEntity));
             repositoryHolder.getMachineRepository().save(machineEntity);
         }
-        catch (IllegalArgumentException iae) {
-            throw new Exception("Invalid XML file: " + iae.getMessage());
-        } catch (Exception e) {
-            throw new Exception("Failed to load XML file: " + e.getMessage());
+        catch (Exception e) {
+            throw new Exception(e.getMessage());
         }
     }
 
@@ -153,6 +151,11 @@ public class EnigmaRunTime {
             }
             usedRotors.add(rotorId);
             rotors.add(this.machineBySession.getSessionStorageManager().optionalGetRotorByID(rotorId));
+
+            if(!this.machineBySession.getMachine().getAlphabet().contains(rotorSelection.getRotorPosition().toUpperCase())){
+                throw new IllegalArgumentException("Rotor position must be a letter from the alphabet");
+            }
+
             if (rotorSelection.getRotorPosition() != null && !rotorSelection.getRotorPosition().isEmpty()) {
 
                 positions.add(Character.toUpperCase(rotorSelection.getRotorPosition().charAt(0)));
@@ -261,6 +264,7 @@ public class EnigmaRunTime {
     }
 
     public List<ConfigurationStats> order7ShowHistoryBySessionID(String sessionID) {
+
         List<ConfigurationStats> history = new ArrayList<>();
         this.buildMachineBySessionId(sessionID);
         if (this.machineBySession.getMachine().getFullHistory().isEmpty()) {
@@ -272,18 +276,20 @@ public class EnigmaRunTime {
 
     public List<ConfigurationStats> order7ShowHistoryByMachineName(String machineName) {
         Optional<MachineEntity> optionalMachineEntity = this.repositoryHolder.getMachineRepository().findByName(machineName);
-        Map<String, List<ProcessingEntity>> groupedByConfig = null;
-        if (optionalMachineEntity.isPresent()) {
-            List<ProcessingEntity> allHistory = this.repositoryHolder
-                    .getProcessingRepository()
-                    .getProcessingEntitiesByMachineId(optionalMachineEntity.get());
-
-            groupedByConfig = allHistory.stream()
-                    .collect(Collectors.groupingBy(ProcessingEntity::getSessionId));
+        if (optionalMachineEntity.isEmpty()) {
+            throw new EntityNotFoundException("Machine with name " + machineName + " not found");
         }
-        assert groupedByConfig != null;
+        Map<String, List<ProcessingEntity>> groupedByConfig = null;
+        List<ProcessingEntity> allHistory = this.repositoryHolder
+                .getProcessingRepository()
+                .getProcessingEntitiesByMachineId(optionalMachineEntity.get());
+
+
+        groupedByConfig = allHistory.stream()
+                .collect(Collectors.groupingBy(ProcessingEntity::getSessionId));
+
         return groupedByConfig.entrySet().stream()
-                .map(entry -> this.mapperHolder.getProcessingMapper().toConfigStats(entry.getKey(), entry.getValue()))
+                .map(entry -> this.mapperHolder.getProcessingMapper().toConfigStats(null, entry.getValue(), entry.getKey()))
                 .collect(Collectors.toList());
     }
 

@@ -6,5 +6,5 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class SessionDTOInput {
-    private String machineName;
+    private String machine;
 }

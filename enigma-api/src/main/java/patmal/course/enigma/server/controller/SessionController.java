@@ -21,12 +21,12 @@ public class SessionController extends EnigmaController {
     @PostMapping("/session")
     public ResponseEntity<SessionDTOOutput> createSession(@RequestBody SessionDTOInput input) {
 
-        if (input == null || input.getMachineName() == null) {
+        if (input == null || input.getMachine() == null) {
             return ResponseEntity.badRequest().build();
         }
 
         String sessionID = this.getEnigmaRunTime()
-                .getSessionsManager().createSession(input.getMachineName());
+                .getSessionsManager().createSession(input.getMachine());
         SessionDTOOutput response = new SessionDTOOutput();
         response.setSessionID(sessionID);
 
