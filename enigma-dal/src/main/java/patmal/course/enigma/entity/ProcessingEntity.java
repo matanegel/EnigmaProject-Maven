@@ -28,10 +28,10 @@ public class ProcessingEntity {
     @Column(name = "code")
     private String code;
 
-    @Column(name = "input_text")
+    @Column(name = "input")
     private String input;
 
-    @Column(name = "output_text")
+    @Column(name = "output")
     private String output;
 
     @Column(name = "time")
